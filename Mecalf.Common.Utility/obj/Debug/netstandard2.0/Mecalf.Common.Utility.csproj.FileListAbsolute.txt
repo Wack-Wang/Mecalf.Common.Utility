@@ -1,0 +1,9 @@
+E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\bin\Debug\netstandard2.0\Mecalf.Common.Utility.deps.json
+E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\bin\Debug\netstandard2.0\Mecalf.Common.Utility.dll
+E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\obj\Debug\netstandard2.0\Mecalf.Common.Utility.csprojAssemblyReference.cache
+E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\obj\Debug\netstandard2.0\Mecalf.Common.Utility.csproj.CoreCompileInputs.cache
+E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\obj\Debug\netstandard2.0\Mecalf.Common.Utility.AssemblyInfoInputs.cache
+E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\obj\Debug\netstandard2.0\Mecalf.Common.Utility.AssemblyInfo.cs
+E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\bin\Debug\netstandard2.0\Mecalf.Common.Utility.pdb
+E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\obj\Debug\netstandard2.0\Mecalf.Common.Utility.dll
+E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\obj\Debug\netstandard2.0\Mecalf.Common.Utility.pdb
