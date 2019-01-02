@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 
 namespace Mecalf.Common.Utility
 {
@@ -174,74 +175,6 @@ namespace Mecalf.Common.Utility
         }
         #endregion
 
-        #region 得到字符串长度，一个汉字长度为2
-        /// <summary>
-        /// 得到字符串长度，一个汉字长度为2
-        /// </summary>
-        /// <param name="inputString">参数字符串</param>
-        /// <returns></returns>
-        public static int StrLength(this string inputString)
-        {
-            System.Text.ASCIIEncoding ascii = new System.Text.ASCIIEncoding();
-            int tempLen = 0;
-            byte[] s = ascii.GetBytes(inputString);
-            for (int i = 0; i < s.Length; i++)
-            {
-                if ((int)s[i] == 63)
-                    tempLen += 2;
-                else
-                    tempLen += 1;
-            }
-            return tempLen;
-        }
-        #endregion
-
-        #region 截取指定长度字符串
-        /// <summary>
-        /// 截取指定长度字符串
-        /// </summary>
-        /// <param name="inputString">要处理的字符串</param>
-        /// <param name="len">指定长度</param>
-        /// <returns>返回处理后的字符串</returns>
-        public static string ClipString(this string inputString, int len)
-        {
-            bool isShowFix = false;
-            if (len % 2 == 1)
-            {
-                isShowFix = true;
-                len--;
-            }
-            System.Text.ASCIIEncoding ascii = new System.Text.ASCIIEncoding();
-            int tempLen = 0;
-            string tempString = "";
-            byte[] s = ascii.GetBytes(inputString);
-            for (int i = 0; i < s.Length; i++)
-            {
-                if ((int)s[i] == 63)
-                    tempLen += 2;
-                else
-                    tempLen += 1;
-
-                try
-                {
-                    tempString += inputString.Substring(i, 1);
-                }
-                catch
-                {
-                    break;
-                }
-
-                if (tempLen > len)
-                    break;
-            }
-
-            byte[] mybyte = System.Text.Encoding.Default.GetBytes(inputString);
-            if (isShowFix && mybyte.Length > len)
-                tempString += "…";
-            return tempString;
-        }
-        #endregion
-
         #region HTML转行成TEXT
         /// <summary>
         /// HTML转行成TEXT
@@ -286,12 +219,13 @@ namespace Mecalf.Common.Utility
         #endregion
 
         #region 判断对象是否为空
+
         /// <summary>
         /// 判断对象是否为空，为空返回true
         /// </summary>
         /// <typeparam name="T">要验证的对象的类型</typeparam>
         /// <param name="data">要验证的对象</param>        
-        public static bool IsNullOrEmpty<T>(this T data)
+        public static bool IsNullOrEmpty<T>(this T data) where T : class
         {
             //如果为null
             if (data == null)
@@ -299,19 +233,13 @@ namespace Mecalf.Common.Utility
                 return true;
             }
 
-            //如果为""
+            //如果为字符串，则按字符串判空
             if (data is string)
             {
                 if (string.IsNullOrEmpty(data.ToString().Trim()))
                 {
                     return true;
                 }
-            }
-
-            //如果为DBNull
-            if (data is DBNull)
-            {
-                return true;
             }
 
             //不为空
@@ -337,12 +265,6 @@ namespace Mecalf.Common.Utility
                 {
                     return true;
                 }
-            }
-
-            //如果为DBNull
-            if (data is DBNull)
-            {
-                return true;
             }
 
             //不为空

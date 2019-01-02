@@ -11,14 +11,14 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("Mecalf.Common.Utility")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Mecalf")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("一些常用的工具类")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("0.0.0.1")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("0.0.0.2")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mecalf.Common.Utility")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mecalf.Common.Utility")]
-[assembly: System.Reflection.AssemblyVersionAttribute("0.0.0.1")]
+[assembly: System.Reflection.AssemblyVersionAttribute("0.0.0.2")]
 
 // 由 MSBuild WriteCodeFragment 类生成。
 

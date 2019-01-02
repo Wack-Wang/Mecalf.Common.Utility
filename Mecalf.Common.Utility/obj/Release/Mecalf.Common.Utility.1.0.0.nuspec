@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Mecalf.Common.Utility</id>
+    <version>1.0.0</version>
+    <authors>Mecalf.Common.Utility</authors>
+    <owners>Mecalf.Common.Utility</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://github.com/Wack-Wang/Mecalf.Common.Utility</projectUrl>
+    <description>一些常用的工具类</description>
+    <repository url="https://github.com/Wack-Wang/Mecalf.Common.Utility" />
+    <dependencies>
+      <group targetFramework=".NETStandard1.0">
+        <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="11.0.2" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\bin\Release\netstandard1.0\Mecalf.Common.Utility.dll" target="lib\netstandard1.0\Mecalf.Common.Utility.dll" />
+  </files>
+</package>

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Mecalf.Common.Utility</id>
+    <version>1.0.1</version>
+    <authors>WackWang</authors>
+    <owners>WackWang</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://github.com/Wack-Wang/Mecalf.Common.Utility</projectUrl>
+    <description>一些常用的工具类</description>
+    <repository type="git" url="https://github.com/Wack-Wang/Mecalf.Common.Utility" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Newtonsoft.Json" version="9.0.1" exclude="Build,Analyzers" />
+        <dependency id="System.Security.Cryptography.Algorithms" version="4.3.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="E:\Mecalf\Mecalf.Common.Utility\Release\netstandard2.0\Mecalf.Common.Utility.dll" target="lib\netstandard2.0\Mecalf.Common.Utility.dll" />
+  </files>
+</package>

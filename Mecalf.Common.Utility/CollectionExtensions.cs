@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Mecalf.Common.Utility
 {
@@ -20,6 +21,56 @@ namespace Mecalf.Common.Utility
             {
                 action(item);
             }
+        }
+        /// <summary>
+        /// 判断集合是否为空，为空返回true
+        /// </summary>
+        /// <typeparam name="T">要验证的对象的类型</typeparam>
+        /// <param name="data">要验证的对象</param>        
+        public static bool IsNullOrEmpty<T>(this IQueryable<T> data)
+        {
+            //如果为null
+            if (data == null)
+            {
+                return true;
+            }
+
+            //不为空
+            return data.Any();
+        }
+
+        /// <summary>
+        /// 判断集合是否为空，为空返回true
+        /// </summary>
+        /// <typeparam name="T">要验证的对象的类型</typeparam>
+        /// <param name="data">要验证的对象</param>        
+        public static bool IsNullOrEmpty<T>(this ICollection<T> data)
+        {
+            //如果为null
+            if (data == null)
+            {
+                return true;
+            }
+
+            //不为空
+            return data.Any();
+        }
+
+        /// <summary>
+        /// 判断集合是否为空，为空返回true
+        /// </summary>
+        /// <typeparam name="T">要验证的对象的类型</typeparam>
+        /// <param name="data">要验证的对象</param>        
+        public static bool IsNullOrEmpty<T>(this IEnumerable<T> data)
+        {
+            //如果为null
+            if (data == null)
+            {
+                return true;
+            }
+
+            //不为空
+            return data.Any();
         }
     }
 }

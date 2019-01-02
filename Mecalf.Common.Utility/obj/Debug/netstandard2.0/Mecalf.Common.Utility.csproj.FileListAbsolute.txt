@@ -7,3 +7,6 @@ E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\obj\Debug\netstandard2.0\M
 E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\bin\Debug\netstandard2.0\Mecalf.Common.Utility.pdb
 E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\obj\Debug\netstandard2.0\Mecalf.Common.Utility.dll
 E:\Mecalf\Mecalf.Common.Utility\Mecalf.Common.Utility\obj\Debug\netstandard2.0\Mecalf.Common.Utility.pdb
+E:\Mecalf\Mecalf.Common.Utility\Release\netstandard2.0\Mecalf.Common.Utility.deps.json
+E:\Mecalf\Mecalf.Common.Utility\Release\netstandard2.0\Mecalf.Common.Utility.dll
+E:\Mecalf\Mecalf.Common.Utility\Release\netstandard2.0\Mecalf.Common.Utility.pdb
