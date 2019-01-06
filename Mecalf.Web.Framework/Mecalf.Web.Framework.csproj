@@ -200,12 +200,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientBuilder\CrudServicePageBuilder.cs" />
+    <Compile Include="ClientBuilder\TemplateInterpreter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\CrudAppServiceBase.cs" />
+    <Compile Include="Services\CrudAppService.cs" />
     <Compile Include="Services\Dto\ApiResult.cs" />
-    <Compile Include="Services\Dto\IGetInput.cs" />
-    <Compile Include="Services\Dto\IPagedGetInput.cs" />
+    <Compile Include="Services\Dto\IPagedAndSortedGetInput.cs" />
     <Compile Include="Services\Dto\PagedAndSortedGetInput.cs" />
+    <Compile Include="Services\ICrudAppService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -217,5 +219,6 @@
       <Name>Mecalf.Common.Utility</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

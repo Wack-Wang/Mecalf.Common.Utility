@@ -1,21 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using System;
 
 namespace Mecalf.Web.Framework.Services.Dto
 {
     /// <summary>
     /// 排序和分页获取数据的输入信息
     /// </summary>
-    /// <typeparam name="TPrimaryKey"></typeparam>
-    public class PagedAndSortedGetInput<TPrimaryKey> : IGetInput<TPrimaryKey>
+    [Serializable]
+    public class PagedAndSortedGetInput : IPagedAndSortedGetInput
     {
         /// <summary>
-        /// 目标记录的唯一ID
+        /// 跳过多少条记录
         /// </summary>
-        public IEnumerable<TPrimaryKey> Ids { get; set; }
+        public int? Skip { get; set; } = 0;
 
         /// <summary>
-        /// 分页信息
+        /// 每一页有多少条记录
         /// </summary>
-        public IPagedGetInput Paging { get; set; }
+        public int? Take { get; set; } = 10;
+
+        /// <summary>
+        /// 用于排序的字段
+        /// </summary>
+        public string OrderBy { get; set; } = "Id";
+
+        /// <summary>
+        /// 是否升序排列结果,
+        /// </summary>
+        public bool Asc { get; set; } = true;
     }
 }

@@ -3,7 +3,7 @@
     /// <summary>
     /// 分页获取数据的输入
     /// </summary>
-    public interface IPagedGetInput
+    public interface IPagedAndSortedGetInput
     {
         /// <summary>
         /// 跳过多少条记录

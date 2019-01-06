@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -54,7 +53,7 @@ namespace Mecalf.Common.Utility
         /// </summary>
         public static string DelLastComma(this string str)
         {
-            return str.Substring(0, str.LastIndexOf(","));
+            return str.Substring(0, str.LastIndexOf(",", StringComparison.Ordinal));
         }
 
         /// <summary>
@@ -62,7 +61,7 @@ namespace Mecalf.Common.Utility
         /// </summary>
         public static string DelLastChar(this string str, string strchar)
         {
-            return str.Substring(0, str.LastIndexOf(strchar));
+            return str.Substring(0, str.LastIndexOf(strchar, StringComparison.Ordinal));
         }
 
         #endregion
@@ -201,7 +200,6 @@ namespace Mecalf.Common.Utility
             @"<!--.*\n"
             };
 
-            string newReg = aryReg[0];
             string strOutput = strHtml;
             for (int i = 0; i < aryReg.Length; i++)
             {
@@ -209,9 +207,9 @@ namespace Mecalf.Common.Utility
                 strOutput = regex.Replace(strOutput, string.Empty);
             }
 
-            strOutput.Replace("<", "");
-            strOutput.Replace(">", "");
-            strOutput.Replace("\r\n", "");
+            strOutput = strOutput.Replace("<", "");
+            strOutput = strOutput.Replace(">", "");
+            strOutput = strOutput.Replace("\r\n", "");
 
 
             return strOutput;
@@ -220,76 +218,24 @@ namespace Mecalf.Common.Utility
 
         #region 判断对象是否为空
 
-        /// <summary>
-        /// 判断对象是否为空，为空返回true
-        /// </summary>
-        /// <typeparam name="T">要验证的对象的类型</typeparam>
-        /// <param name="data">要验证的对象</param>        
-        public static bool IsNullOrEmpty<T>(this T data) where T : class
-        {
-            //如果为null
-            if (data == null)
-            {
-                return true;
-            }
-
-            //如果为字符串，则按字符串判空
-            if (data is string)
-            {
-                if (string.IsNullOrEmpty(data.ToString().Trim()))
-                {
-                    return true;
-                }
-            }
-
-            //不为空
-            return false;
-        }
 
         /// <summary>
-        /// 判断对象是否为空，为空返回true
-        /// </summary>
-        /// <param name="data">要验证的对象</param>
-        public static bool IsNullOrEmpty(this object data)
-        {
-            //如果为null
-            if (data == null)
-            {
-                return true;
-            }
-
-            //如果为""
-            if (data is string)
-            {
-                if (string.IsNullOrEmpty(data.ToString().Trim()))
-                {
-                    return true;
-                }
-            }
-
-            //不为空
-            return false;
-        }
-
-        /// <summary>
-        /// 判断一个对象是否不为null
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public static bool IsNotNull<T>(this T obj)
-        {
-            return obj != null;
-        }
-
-        /// <summary>
-        /// 判断字符串是否非空
+        /// 判断字符串是否为空
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
         public static bool IsNotNullOrEmpty(this string str)
         {
             return string.IsNullOrEmpty(str) == false;
+        }
+        /// <summary>
+        /// 判断字符串是否非空
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static bool IsNullOrEmpty(this string str)
+        {
+            return string.IsNullOrEmpty(str);
         }
 
         /// <summary>
@@ -300,6 +246,15 @@ namespace Mecalf.Common.Utility
         public static bool IsNotNullOrWhiteSpace(this string str)
         {
             return string.IsNullOrWhiteSpace(str) == false;
+        }
+        /// <summary>
+        /// 判断字符串是否为空或空字符串
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static bool IsNullOrWhiteSpace(this string str)
+        {
+            return string.IsNullOrWhiteSpace(str);
         }
 
         #endregion
