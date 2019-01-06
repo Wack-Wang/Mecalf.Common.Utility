@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Abp.Application.Services.Dto;
+using Abp.Extensions;
 using Castle.Core.Internal;
 using Mecalf.Web.Framework.Services;
 
@@ -63,6 +65,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// <returns></returns>
         protected void FuncCall(string name, string[] args)
         {
+            //后续考虑加入函数的嵌套调用
             switch (name)
             {
                 case "DtoSee":
@@ -72,10 +75,38 @@ namespace Mecalf.Web.Framework.ClientBuilder
                     break;
                 case "LowerStr":
                     {
-                        LowerStr(args[0]);
+                        WriteData(LowerStr(args[0]));
+                    }
+                    break;
+                case "CamelCase":
+                    {
+                        WriteData(CamelCase(args[0]));
+                    }
+                    break;
+                case "Namespace":
+                    {
+                        WriteData(Namespace(args[0]));
                     }
                     break;
             }
+        }
+        /// <summary>
+        /// 获取字符串并将字符串转换成小驼峰格式的字符串,注意,仅仅是将第一个字母变小写,其他不变!
+        /// </summary>
+        /// <param name="name"></param>
+        protected string CamelCase(string name)
+        {
+            return (Values[name].ToCamelCase());
+        }
+
+        /// <summary>
+        ///  获取字符串并将字符串转换成小驼峰格式的字符串,注意,这将会把字符串分割,并通过.连接,同时将.后的第一个字母小写
+        /// </summary>
+        /// <param name="name"></param>
+        protected string Namespace(string name)
+        {
+            return (Regex.Replace(Values[name], "[a-z][A-Z]", m => m.Value[0] + "." + char.ToLower(m.Value[1])));
+
         }
 
         private void WriteData(string data)
@@ -93,9 +124,9 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// <summary>
         /// 变量读取,从环境中读取指定的属性
         /// </summary>
-        protected void LowerStr(string name)
+        protected string LowerStr(string name)
         {
-            WriteData(Values[name].ToLowerInvariant());
+            return (Values[name].ToLowerInvariant());
         }
         /// <summary>
         /// 变量读取,从环境中读取指定的属性

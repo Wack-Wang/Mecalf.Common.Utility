@@ -32,6 +32,18 @@
             <param name="args"></param>
             <returns></returns>
         </member>
+        <member name="M:Mecalf.Web.Framework.ClientBuilder.TemplateInterpreter.CamelCase(System.String)">
+            <summary>
+            获取字符串并将字符串转换成小驼峰格式的字符串,注意,仅仅是将第一个字母变小写,其他不变!
+            </summary>
+            <param name="name"></param>
+        </member>
+        <member name="M:Mecalf.Web.Framework.ClientBuilder.TemplateInterpreter.Namespace(System.String)">
+            <summary>
+             获取字符串并将字符串转换成小驼峰格式的字符串,注意,这将会把字符串分割,并通过.连接,同时将.后的第一个字母小写
+            </summary>
+            <param name="name"></param>
+        </member>
         <member name="M:Mecalf.Web.Framework.ClientBuilder.TemplateInterpreter.LowerStr(System.String)">
             <summary>
             变量读取,从环境中读取指定的属性

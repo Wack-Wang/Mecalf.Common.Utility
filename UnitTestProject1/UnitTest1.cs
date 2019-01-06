@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Mecalf.Common.Utility;
-using Mecalf.Web.Framework.ClientBuilder;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTestProject1
@@ -25,7 +25,7 @@ namespace UnitTestProject1
         [TestMethod]
         public void MyTestMethod2()
         {
-
+            Console.WriteLine(Regex.Replace("abCdEFg", "[a-z][A-Z]", m => m.Value[0] + "." + char.ToLower(m.Value[1])));
         }
     }
 
