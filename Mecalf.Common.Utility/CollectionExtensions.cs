@@ -36,7 +36,7 @@ namespace Mecalf.Common.Utility
             }
 
             //不为空
-            return data.Any();
+            return data.Any() == false;
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Mecalf.Common.Utility
             }
 
             //不为空
-            return data.Any();
+            return data.Any() == false;
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Mecalf.Common.Utility
             }
 
             //不为空
-            return data.Any();
+            return data.Any() == false;
         }
     }
 }

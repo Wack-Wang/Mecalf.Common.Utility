@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web.Mvc;
-using Abp.Application.Services;
+﻿using Abp.Application.Services;
 using Abp.Application.Services.Dto;
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
 using Abp.Domain.Repositories;
+using Abp.Logging;
+using Abp.UI;
 using Mecalf.Common.Utility;
-using Mecalf.Web.Framework.Services.Dto;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Mvc;
 
 namespace Mecalf.Web.Framework.Services
 {
@@ -39,7 +40,7 @@ namespace Mecalf.Web.Framework.Services
     /// <typeparam name="TEntity">数据库实体</typeparam>
     /// <typeparam name="TEntityDto">实体的DTO,必须能和 <typeparamref name="TEntity" /> 相互映射</typeparam>
     /// <typeparam name="TPrimaryKey">实体的主键</typeparam>
-    public abstract class CrudAppService<TEntity, TEntityDto, TPrimaryKey> : CrudAppService<TEntity, TEntityDto, TPrimaryKey, TEntityDto, TEntityDto, PagedAndSortedGetInput>
+    public abstract class CrudAppService<TEntity, TEntityDto, TPrimaryKey> : CrudAppService<TEntity, TEntityDto, TPrimaryKey, TEntityDto, TEntityDto, PagedAndSortedResultRequestDto>
         where TEntity : class, IEntity<TPrimaryKey>, ICreationAudited
         where TEntityDto : IEntityDto<TPrimaryKey>
     {
@@ -62,7 +63,7 @@ namespace Mecalf.Web.Framework.Services
     /// <typeparam name="TUpdateInput">更新实体时的输入，必须能够映射到<typeparamref name="TEntity"/> </typeparam>
     /// <typeparam name="TGetInput">获取所有数据时的输入</typeparam>
     public abstract class CrudAppService<TEntity, TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput> : CrudAppService<
-        TEntity, TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, PagedAndSortedGetInput>
+        TEntity, TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, PagedAndSortedResultRequestDto>
         where TEntity : class, IEntity<TPrimaryKey>, ICreationAudited
         where TEntityDto : IEntityDto<TPrimaryKey>
         where TCreateInput : IEntityDto<TPrimaryKey>
@@ -93,7 +94,10 @@ namespace Mecalf.Web.Framework.Services
         where TCreateInput : IEntityDto<TPrimaryKey>
         where TUpdateInput : IEntityDto<TPrimaryKey>
     {
-        private readonly IRepository<TEntity, TPrimaryKey> _repository;
+        /// <summary>
+        /// 存放实体的仓储
+        /// </summary>
+        protected readonly IRepository<TEntity, TPrimaryKey> _repository;
         /// <summary>
         /// 用户没有权限进行当前操作时返回的错误代码
         /// </summary>
@@ -118,6 +122,10 @@ namespace Mecalf.Web.Framework.Services
         /// 批量获取实体的权限名称
         /// </summary>
         protected string GetAllPermissionName { get; set; }
+        /// <summary>
+        /// 管理权限的权限名称,只有拥有这项权限的用户能修改其他用户的数据
+        /// </summary>
+        protected string ManagePermissionName { get; set; }
 
         /// <summary>
         /// 检查当前用户是否有创建实体的权限
@@ -146,6 +154,11 @@ namespace Mecalf.Web.Framework.Services
         /// </summary>
         /// <returns></returns>
         protected bool CheckGetAllPermission() { return CheckPermission(GetAllPermissionName); }
+        /// <summary>
+        /// 检查当前用户是否有管理所有实体的权限
+        /// </summary>
+        /// <returns></returns>
+        protected bool CheckManagePermission() { return CheckPermission(ManagePermissionName); }
 
         /// <summary>
         /// 检查当前用户是否有指定的权限
@@ -174,6 +187,25 @@ namespace Mecalf.Web.Framework.Services
             _repository = repository;
         }
 
+        ///// <summary>
+        ///// 获取数据，这里是所有请求都需要有的基础过滤。
+        ///// </summary>
+        ///// <param name="query"></param>
+        ///// <returns></returns>
+        //protected virtual IQueryable<TEntity> GetAll(IQueryable<TEntity> query)
+        //{
+        //    return query;
+        //}
+
+        /// <summary>
+        /// 将需要的导航的属性包含进来
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IQueryable<TEntity> GetAllIncluding()
+        {
+            return _repository.GetAllIncluding();
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// 创建一个指定类型的对象并保存到数据库中
@@ -181,25 +213,24 @@ namespace Mecalf.Web.Framework.Services
         /// <param name="input"></param>
         /// <returns></returns>
         [HttpPost]
-        public virtual ApiResult<TEntityDto> Create(TCreateInput input)
+        public virtual TEntityDto Create(TCreateInput input)
         {
             try
             {
                 if (CheckCreatePermission() == false)
                 {
-                    return OperationDenied();
+                    throw OperationDenied();
                 }
 
                 var entity = ObjectMapper.Map<TEntity>(input);
                 var id = _repository.InsertAndGetId(entity);
                 var dto = ObjectMapper.Map<TEntityDto>(entity);
                 dto.Id = id;
-                return new ApiResult<TEntityDto>(true, dto);
+                return dto;
             }
             catch (Exception e)
             {
-                Logger.Error("未处理的异常", e);
-                return new ApiResult<TEntityDto>(false) { Msg = e.ToString() };
+                throw UnhandledException(e);
             }
         }
 
@@ -209,22 +240,29 @@ namespace Mecalf.Web.Framework.Services
         /// <param name="input">需要删除的Id的数组</param>
         /// <returns></returns>
         [HttpDelete]
-        public virtual ApiResult Delete(List<TPrimaryKey> input)
+        public virtual object Delete(List<TPrimaryKey> input)
         {
             try
             {
                 if (CheckDeletePermission() == false)
                 {
-                    return new ApiResult(false) { ErrorCode = NoPermissionErrorCode, Msg = "No permission to do this operation!" };
+                    throw OperationDenied();
                 }
 
-                _repository.Delete(entity => input.Contains(entity.Id));
-                return new ApiResult(true);
+                if (CheckManagePermission())
+                {
+                    _repository.Delete(entity => input.Contains(entity.Id));
+                }
+                else
+                {
+                    _repository.Delete(entity => input.Contains(entity.Id) && entity.CreatorUserId == AbpSession.UserId);
+                }
+
+                return "Success";
             }
             catch (Exception e)
             {
-                Logger.Error("未处理的异常", e);
-                return new ApiResult(false) { Msg = e.ToString() };
+                throw UnhandledException(e);
             }
         }
 
@@ -236,23 +274,35 @@ namespace Mecalf.Web.Framework.Services
         /// <returns></returns>
         //TODO：警告：这里的Update和RestFul的Put请求规范并不完全匹配
         [HttpPut]
-        public virtual ApiResult<TEntityDto> Update(TUpdateInput input)
+        public virtual TEntityDto Update(TUpdateInput input)
         {
             try
             {
                 if (CheckUpdatePermission() == false)
                 {
-                    return OperationDenied();
+                    throw OperationDenied();
                 }
-                var entity = ObjectMapper.Map<TEntity>(input);
+                IQueryable<TEntity> query = GetAllIncluding();
+
+                if (CheckManagePermission() == false)
+                {
+                    OperationDenied();
+                    query = query.Where(ent => ent.CreatorUserId == AbpSession.UserId);
+                }
+
+                var entity = query.FirstOrDefault(entity1 => entity1.Id.Equals(input.Id));
+                if (entity == null)
+                {
+                    throw NotFoundException(input.Id);
+                }
+                ObjectMapper.Map(input, entity);
                 entity = _repository.Update(entity);
                 var dto = ObjectMapper.Map<TEntityDto>(entity);
-                return new ApiResult<TEntityDto>(true, dto);
+                return dto;
             }
             catch (Exception e)
             {
-                Logger.Error("未处理的异常", e);
-                return new ApiResult<TEntityDto>(false) { Msg = e.ToString() };
+                throw UnhandledException(e);
             }
         }
 
@@ -260,9 +310,37 @@ namespace Mecalf.Web.Framework.Services
         /// 由于权限问题,请求已被拒绝!
         /// </summary>
         /// <returns></returns>
-        protected virtual ApiResult<TEntityDto> OperationDenied()
+        protected virtual UserFriendlyException OperationDenied()
         {
-            return new ApiResult<TEntityDto>(false, msg: "No permission to do this operation!") { ErrorCode = NoPermissionErrorCode };
+            return new UserFriendlyException(NoPermissionErrorCode, "No permission to do this operation!") { Severity = LogSeverity.Error };
+        }
+
+        /// <summary>
+        /// 由于系统出现未处理的异常!
+        /// </summary>
+        /// <returns></returns>
+        protected virtual UserFriendlyException UnhandledException(Exception e)
+        {
+            Logger.Error("未处理的异常", e);
+            return new UserFriendlyException(-1, "未处理的异常！", e.ToString()) { Severity = LogSeverity.Fatal };
+        }
+
+        /// <summary>
+        /// 找不到给定的记录,操作失败!
+        /// </summary>
+        /// <returns></returns>
+        protected virtual UserFriendlyException NotFoundException(TPrimaryKey id)
+        {
+            return new UserFriendlyException(-2, $"找不到唯一Id为:{id}的记录,操作失败！") { Severity = LogSeverity.Warn };
+        }
+
+        /// <summary>
+        /// 由于业务逻辑上不允许当前操作,操作失败!!
+        /// </summary>
+        /// <returns></returns>
+        protected virtual UserFriendlyException Failed(string message, int id)
+        {
+            return new UserFriendlyException(id, message) { Severity = LogSeverity.Warn };
         }
 
         /// <inheritdoc />
@@ -272,35 +350,37 @@ namespace Mecalf.Web.Framework.Services
         /// <param name="input"></param>
         /// <returns></returns>
         [HttpGet]
-        public virtual PagedApiResult<List<TEntityDto>> GetAll(TGetInput input)
+        public virtual PagedResultDto<TEntityDto> GetAll(TGetInput input)
         {
             try
             {
 
-                var query = CreateFilterQuery(input);
-
-                //如果没有查看其他人创建的记录权限,则只能查看到自己创建的记录
                 if (CheckGetAllPermission() == false)
                 {
-                    query = query.Where(entity => entity.CreatorUserId == AbpSession.UserId);
+                    throw OperationDenied();
+                }
+                var query = CreateFilterQuery(input);
+
+                //如果没有管理权限,则只能查看到自己创建的记录
+                if (CheckManagePermission() == false)
+                {
+                    query = query.Where(ent => ent.CreatorUserId == AbpSession.UserId);
                 }
 
                 var totalCount = query.Count();
-                var paging = input as IPagedAndSortedGetInput;
+                var paging = input as PagedAndSortedResultRequestDto;
                 if (paging.IsNotNull())
                 {
                     query = Get_Paging(query, paging);
                 }
 
-                var aquery = query.ToList();
-                var result = aquery.Select(entity => ObjectMapper.Map<TEntityDto>(entity));
+                var result = query.ToList().Select(entity => ObjectMapper.Map<TEntityDto>(entity));
                 var list = result.ToList();
-                return PagedApiResult.Succeed(totalCount, list);
+                return new PagedResultDto<TEntityDto>(totalCount, list);
             }
             catch (Exception e)
             {
-                Logger.Error("未处理的异常", e);
-                return PagedApiResult.Failed<List<TEntityDto>>(e.ToString());
+                throw UnhandledException(e);
             }
         }
 
@@ -309,47 +389,57 @@ namespace Mecalf.Web.Framework.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public ApiResult<TEntityDto> Get(TPrimaryKey id)
+        public TEntityDto Get(TPrimaryKey id)
         {
             if (CheckGetPermission() == false)
             {
-                return new ApiResult<TEntityDto>() { ErrorCode = NoPermissionErrorCode, Msg = "No permission to do this operation!" };
+                throw OperationDenied();
             }
-            var entity = _repository.Get(id);
+
+            var query = GetAllIncluding();
+            if (CheckManagePermission() == false)
+            {
+                query = query.Where(ent => ent.CreatorUserId == AbpSession.UserId);
+            }
+            var entity = query.FirstOrDefault(entity1 => entity1.Id.Equals(id));
             if (entity.IsNull())
             {
-                return ApiResult.Succeed<TEntityDto>();
+                return default(TEntityDto);
             }
 
             var dto = ObjectMapper.Map<TEntityDto>(entity);
-            return ApiResult.Succeed(dto);
+            return (dto);
         }
 
         /// <summary>
         /// 获取指定Id的数据记录
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="ids"></param>
         /// <returns></returns>
-        public ApiResult<List<TEntityDto>> GetByIds(List<TPrimaryKey> ids)
+        public ListResultDto<TEntityDto> GetByIds(List<TPrimaryKey> ids)
         {
             if (CheckGetPermission() == false)
             {
-                return new ApiResult<List<TEntityDto>>() { ErrorCode = NoPermissionErrorCode, Msg = "No permission to do this operation!" };
+                throw OperationDenied();
             }
-
-            var query = _repository.GetAllIncluding(entity => ids.Contains(entity.Id));
+            var query = GetAllIncluding();
+            if (CheckManagePermission() == false)
+            {
+                query = query.Where(ent => ent.CreatorUserId == AbpSession.UserId);
+            }
+            query = query.Where(entity => ids.Contains(entity.Id));
             var result = query.Select(entity => ObjectMapper.Map<TEntityDto>(entity)).ToList();
-            return ApiResult.Succeed(result);
+            return new ListResultDto<TEntityDto>(result);
         }
 
         /// <summary>
-        /// 根据输入的条件，筛选数据
+        /// 根据输入的条件，筛选数据,子类可以在需要的时候重写这个方法来对查询的数据进行过滤
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
         protected virtual IQueryable<TEntity> CreateFilterQuery(TGetInput input)
         {
-            return _repository.GetAllIncluding();
+            return GetAllIncluding();
         }
         /// <summary>
         /// 查询数据中的部分功能：对查询到的结果进行分页处理
@@ -357,32 +447,18 @@ namespace Mecalf.Web.Framework.Services
         /// <param name="result">需要分页的数据</param>
         /// <param name="paging">分页参数</param>
         /// <returns></returns>
-        protected virtual IQueryable<TEntity> Get_Paging(IQueryable<TEntity> result, IPagedAndSortedGetInput paging)
+        protected virtual IQueryable<TEntity> Get_Paging(IQueryable<TEntity> result, PagedAndSortedResultRequestDto paging)
         {
             if (result.IsNull() || paging.IsNull())
             {
                 return result;
             }
 
-            if (paging.OrderBy.IsNotNullOrWhiteSpace())
-            {
-                result = System.Linq.Dynamic.DynamicQueryable.OrderBy(result, $"{paging.OrderBy} {(paging.Asc ? "ASC" : "DESC")}");
-            }
-            else
-            {
-                result = paging.Asc ? result.OrderBy(entity => entity.Id) : result.OrderByDescending(entity => entity.Id);
-            }
-
-            if (paging.Skip.HasValue)
-            {
-                result = result.Skip(paging.Skip.Value);
-            }
-
-            if (paging.Take.HasValue)
-            {
-                result = result.Take(paging.Take.Value);
-            }
-
+            result = paging.Sorting.IsNotNullOrWhiteSpace() ?
+                System.Linq.Dynamic.DynamicQueryable.OrderBy(result, paging.Sorting)
+                : result.OrderByDescending(entity => entity.Id);
+            result = result.Skip(paging.SkipCount);
+            result = result.Take(paging.MaxResultCount);
             return result;
         }
     }

@@ -6,7 +6,7 @@
     <members>
         <member name="T:Mecalf.Web.Framework.ClientBuilder.TemplateInterpreter">
             <summary>
-            模板解释器
+            模板解释器,TODO:后续考虑进行重构,并加入类似于合并路由注册的功能.
             </summary>
         </member>
         <member name="P:Mecalf.Web.Framework.ClientBuilder.TemplateInterpreter.Encoding">
@@ -95,6 +95,11 @@
             <param name="pathDir"></param>
             <param name="saveDir"></param>
         </member>
+        <member name="M:Mecalf.Web.Framework.ClientBuilder.TemplateInterpreter.BuildManyInternal(System.String,System.String)">
+            <summary>
+            批量获取模板和生成页面
+            </summary>
+        </member>
         <member name="M:Mecalf.Web.Framework.ClientBuilder.TemplateInterpreter.MainLoop(System.IO.BinaryReader,System.IO.BinaryWriter,System.Boolean)">
             <summary>
             主循环，从头到尾扫描模板流。遇到 {@ 时直接调用相关的解释方法,然后解析接下来的内容.直到遇到 @} 后返回到主循环中.
@@ -172,6 +177,11 @@
             <typeparam name="TUpdateInput">更新实体时的输入，必须能够映射到<typeparamref name="TEntity"/> </typeparam>
             <typeparam name="TGetInput">获取所有数据时的输入</typeparam>
         </member>
+        <member name="F:Mecalf.Web.Framework.Services.CrudAppService`6._repository">
+            <summary>
+            存放实体的仓储
+            </summary>
+        </member>
         <member name="P:Mecalf.Web.Framework.Services.CrudAppService`6.NoPermissionErrorCode">
             <summary>
             用户没有权限进行当前操作时返回的错误代码
@@ -200,6 +210,11 @@
         <member name="P:Mecalf.Web.Framework.Services.CrudAppService`6.GetAllPermissionName">
             <summary>
             批量获取实体的权限名称
+            </summary>
+        </member>
+        <member name="P:Mecalf.Web.Framework.Services.CrudAppService`6.ManagePermissionName">
+            <summary>
+            管理权限的权限名称,只有拥有这项权限的用户能修改其他用户的数据
             </summary>
         </member>
         <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.CheckCreatePermission">
@@ -232,6 +247,12 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.CheckManagePermission">
+            <summary>
+            检查当前用户是否有管理所有实体的权限
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.CheckPermission(System.String)">
             <summary>
             检查当前用户是否有指定的权限
@@ -245,6 +266,12 @@
             构造方法，暂无特殊说明
             </summary>
             <param name="repository"></param>
+        </member>
+        <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.GetAllIncluding">
+            <summary>
+            将需要的导航的属性包含进来
+            </summary>
+            <returns></returns>
         </member>
         <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.Create(`3)">
             <inheritdoc />
@@ -275,6 +302,24 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.UnhandledException(System.Exception)">
+            <summary>
+            由于系统出现未处理的异常!
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.NotFoundException(`2)">
+            <summary>
+            找不到给定的记录,操作失败!
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.Failed(System.String,System.Int32)">
+            <summary>
+            由于业务逻辑上不允许当前操作,操作失败!!
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.GetAll(`5)">
             <inheritdoc />
             <summary>
@@ -294,189 +339,23 @@
             <summary>
             获取指定Id的数据记录
             </summary>
-            <param name="id"></param>
+            <param name="ids"></param>
             <returns></returns>
         </member>
         <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.CreateFilterQuery(`5)">
             <summary>
-            根据输入的条件，筛选数据
+            根据输入的条件，筛选数据,子类可以在需要的时候重写这个方法来对查询的数据进行过滤
             </summary>
             <param name="input"></param>
             <returns></returns>
         </member>
-        <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.Get_Paging(System.Linq.IQueryable{`0},Mecalf.Web.Framework.Services.Dto.IPagedAndSortedGetInput)">
+        <member name="M:Mecalf.Web.Framework.Services.CrudAppService`6.Get_Paging(System.Linq.IQueryable{`0},Abp.Application.Services.Dto.PagedAndSortedResultRequestDto)">
             <summary>
             查询数据中的部分功能：对查询到的结果进行分页处理
             </summary>
             <param name="result">需要分页的数据</param>
             <param name="paging">分页参数</param>
             <returns></returns>
-        </member>
-        <member name="T:Mecalf.Web.Framework.Services.Dto.ApiResult`1">
-            <summary>
-            API的基础返回对象
-            </summary>
-            <typeparam name="T">返回的数据内容的类型</typeparam>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.ApiResult`1.Success">
-            <summary>
-            请求是否处理成功
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.ApiResult`1.Data">
-            <summary>
-            返回的数据
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.ApiResult`1.Msg">
-            <summary>
-            附加的错误信息，不出错时一般为空。
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.ApiResult`1.ErrorCode">
-            <summary>
-            错误代码，不出错时一般为空。
-            </summary>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.ApiResult`1.#ctor(System.Boolean,`0,System.String)">
-            <summary>
-            默认的构造方法,默认Success为True,Data为空
-            </summary>
-        </member>
-        <member name="T:Mecalf.Web.Framework.Services.Dto.ApiResult">
-            <summary>
-            API的基础返回对象（非泛型版本）
-            </summary>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.ApiResult.#ctor(System.Boolean,System.Object)">
-            <summary>
-            默认的构造方法,默认Success为True,Data为空
-            </summary>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.ApiResult.Succeed">
-            <summary>
-            返回一个代表着处理成功的Api返回结果
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.ApiResult.Succeed``1(``0)">
-            <summary>
-            返回一个代表着处理成功的Api返回结果
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="data"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.ApiResult.Failed(System.String)">
-            <summary>
-            返回一个代表着处理失败的Api返回结果
-            </summary>
-            <param name="msg">返回的消息</param>
-            <returns></returns>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.ApiResult.Failed``1(System.String,``0)">
-            <summary>
-            返回一个代表着处理失败的Api返回结果
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="msg">返回的消息</param>
-            <param name="data"></param>
-            <returns></returns>
-        </member>
-        <member name="T:Mecalf.Web.Framework.Services.Dto.PagedApiResult`1">
-            <summary> 
-            分页的Api结果返回
-            </summary>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.PagedApiResult`1.#ctor">
-            <summary>
-            默认的构造方法,不初始化任何信息
-            </summary>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.PagedApiResult`1.#ctor(System.Boolean,`0)">
-            <summary>
-            构造方法,默认Success为True,Data为空
-            </summary>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.PagedApiResult`1.#ctor(System.Boolean,`0,System.String)">
-            <summary>
-            构造方法,默认Success为True,Data为空
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.PagedApiResult`1.Total">
-            <summary>
-            总的符合条件的记录数
-            </summary>
-        </member>
-        <member name="T:Mecalf.Web.Framework.Services.Dto.PagedApiResult">
-            <inheritdoc />
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.PagedApiResult.Succeed``1(System.Int32,``0)">
-            <summary>
-            返回一个代表着处理成功的Api返回结果
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="data">返回的数据</param>
-            <returns></returns>
-        </member>
-        <member name="M:Mecalf.Web.Framework.Services.Dto.PagedApiResult.Failed``1(System.String,``0)">
-            <summary>
-            返回一个代表着处理失败的Api返回结果
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="msg">提示消息</param>
-            <param name="data">返回的数据</param>
-            <returns></returns>
-        </member>
-        <member name="T:Mecalf.Web.Framework.Services.Dto.IPagedAndSortedGetInput">
-            <summary>
-            分页获取数据的输入
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.IPagedAndSortedGetInput.Skip">
-            <summary>
-            跳过多少条记录
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.IPagedAndSortedGetInput.Take">
-            <summary>
-            每一页有多少条记录
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.IPagedAndSortedGetInput.OrderBy">
-            <summary>
-            用于排序的字段
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.IPagedAndSortedGetInput.Asc">
-            <summary>
-            是否升序排列结果,
-            </summary>
-        </member>
-        <member name="T:Mecalf.Web.Framework.Services.Dto.PagedAndSortedGetInput">
-            <summary>
-            排序和分页获取数据的输入信息
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.PagedAndSortedGetInput.Skip">
-            <summary>
-            跳过多少条记录
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.PagedAndSortedGetInput.Take">
-            <summary>
-            每一页有多少条记录
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.PagedAndSortedGetInput.OrderBy">
-            <summary>
-            用于排序的字段
-            </summary>
-        </member>
-        <member name="P:Mecalf.Web.Framework.Services.Dto.PagedAndSortedGetInput.Asc">
-            <summary>
-            是否升序排列结果,
-            </summary>
         </member>
         <member name="T:Mecalf.Web.Framework.Services.ICrudAppService`1">
             <summary>

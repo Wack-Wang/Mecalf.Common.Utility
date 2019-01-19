@@ -1,19 +1,19 @@
-﻿using System;
+﻿using Abp.Application.Services.Dto;
+using Abp.Extensions;
+using Castle.Core.Internal;
+using Mecalf.Web.Framework.Services;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using Abp.Application.Services.Dto;
-using Abp.Extensions;
-using Castle.Core.Internal;
-using Mecalf.Web.Framework.Services;
 
 namespace Mecalf.Web.Framework.ClientBuilder
 {
     /// <summary>
-    /// 模板解释器
+    /// 模板解释器,TODO:后续考虑进行重构,并加入类似于合并路由注册的功能.
     /// </summary>
     public class TemplateInterpreter
     {
@@ -50,9 +50,9 @@ namespace Mecalf.Web.Framework.ClientBuilder
             dtoSeeTemplateEndSign = new byte[] { (byte)'$', (byte)'}' };
             DtoTypes = new Dictionary<string, Type>();
             Values = new Dictionary<string, string>();
-            //dtoTypes["CreateDto"] = typeof(PagedAndSortedGetInput);
+            //dtoTypes["CreateDto"] = typeof(PagedAndSortedSearchInput);
             Encoding = Encoding.UTF8;
-            //DtoTypes["GetDto"] = typeof(PagedAndSortedGetInput);
+            //DtoTypes["GetDto"] = typeof(PagedAndSortedSearchInput);
             //ValueSet("EntityName", "Test!");
             //ValueSet("dto.prop", "Test2!");
         }
@@ -96,7 +96,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// <param name="name"></param>
         protected string CamelCase(string name)
         {
-            return (Values[name].ToCamelCase());
+            return (ValueGet(name).ToCamelCase());
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// <param name="name"></param>
         protected string Namespace(string name)
         {
-            return (Regex.Replace(Values[name], "[a-z][A-Z]", m => m.Value[0] + "." + char.ToLower(m.Value[1])));
+            return (Regex.Replace(ValueGet(name), "[a-z][A-Z]", m => m.Value[0] + "." + char.ToLower(m.Value[1])));
 
         }
 
@@ -126,12 +126,12 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// </summary>
         protected string LowerStr(string name)
         {
-            return (Values[name].ToLowerInvariant());
+            return ValueGet(name).ToLower();
         }
         /// <summary>
         /// 变量读取,从环境中读取指定的属性
         /// </summary>
-        protected string ValueGet(string name)
+        public string ValueGet(string name)
         {
             try
             {
@@ -157,7 +157,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        protected void ValueSet(string name, string value)
+        public void ValueSet(string name, string value)
         {
             Values[name] = value;
         }
@@ -212,6 +212,28 @@ namespace Mecalf.Web.Framework.ClientBuilder
                 entityName = entityName.Substring(0, entityName.Length - 3);
             }
             ValueSet("EntityName", entityName);
+            ValueSet("EntityDtoName", entityName);
+
+            var createDtoName = typeof(TCreateInput).Name;
+            if (createDtoName.EndsWith("Dto"))
+            {
+                createDtoName = createDtoName.Substring(0, createDtoName.Length - 3);
+            }
+            ValueSet("CreateDtoName", createDtoName);
+
+            var updateDtoName = typeof(TCreateInput).Name;
+            if (updateDtoName.EndsWith("Dto"))
+            {
+                updateDtoName = updateDtoName.Substring(0, updateDtoName.Length - 3);
+            }
+            ValueSet("UpdateDtoName", updateDtoName);
+
+            var getAllDtoName = typeof(TCreateInput).Name;
+            if (getAllDtoName.EndsWith("Dto"))
+            {
+                getAllDtoName = getAllDtoName.Substring(0, getAllDtoName.Length - 3);
+            }
+            ValueSet("GetAllDtoName", getAllDtoName);
         }
 
         /// <summary>
@@ -226,6 +248,8 @@ namespace Mecalf.Web.Framework.ClientBuilder
             templateReader = new BinaryReader(new FileStream(path, FileMode.Open));
             templateWriter = new BinaryWriter(new FileStream(savePath, FileMode.Create));
             MainLoop(templateReader, templateWriter);
+            templateReader.Dispose();
+            templateWriter.Dispose();
         }
 
         /// <summary>
@@ -235,15 +259,38 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// <param name="saveDir"></param>
         public void BuildMany(string pathDir, string saveDir)
         {
-            var temps = System.IO.Directory.GetFiles(pathDir);
-            foreach (var path in temps)
+            var entityName = CamelCase("EntityName") + "s";
+            var saveFolder = Path.Combine(saveDir, entityName);
+            if (System.IO.Directory.Exists(saveFolder) == false)
             {
-                var saveFolder = Path.Combine(saveDir, ValueGet("EntityName"));
-                if (System.IO.Directory.Exists(saveFolder) == false)
-                {
-                    System.IO.Directory.CreateDirectory(saveFolder);
-                }
-                var savePath = Path.Combine(saveFolder, System.IO.Path.GetFileName(path));
+                System.IO.Directory.CreateDirectory(saveFolder);
+            }
+            BuildManyInternal(pathDir, saveFolder);
+        }
+
+        /// <summary>
+        /// 批量获取模板和生成页面
+        /// </summary>
+        private void BuildManyInternal(string pathDir, string saveDir)
+        {
+            if (System.IO.Directory.Exists(saveDir) == false)
+            {
+                System.IO.Directory.CreateDirectory(saveDir);
+            }
+
+            var dirs = Directory.GetDirectories(pathDir);
+            foreach (var dir in dirs)
+            {
+                var directory = new DirectoryInfo(dir);
+                //var dirName = Path.GetDirectoryName(dir);
+
+                BuildManyInternal(dir, Path.Combine(saveDir, directory.Name));
+            }
+
+            var files = System.IO.Directory.GetFiles(pathDir);
+            foreach (var path in files)
+            {
+                var savePath = Path.Combine(saveDir, System.IO.Path.GetFileName(path));
                 Build(path, savePath);
             }
         }

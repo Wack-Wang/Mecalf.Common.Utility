@@ -206,7 +206,7 @@
     <Compile Include="Services\CrudAppService.cs" />
     <Compile Include="Services\Dto\ApiResult.cs" />
     <Compile Include="Services\Dto\IPagedAndSortedGetInput.cs" />
-    <Compile Include="Services\Dto\PagedAndSortedGetInput.cs" />
+    <Compile Include="Services\Dto\PagedAndSortedSearchInput.cs" />
     <Compile Include="Services\ICrudAppService.cs" />
   </ItemGroup>
   <ItemGroup>
