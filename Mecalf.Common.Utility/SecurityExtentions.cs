@@ -10,7 +10,7 @@ namespace Mecalf.Common.Utility
     /// </summary>
     public static class SecurityExtentions
     {
-        private static Lazy<MD5> md5Lazy = new Lazy<MD5>(MD5.Create);
+        private static readonly Lazy<MD5> _md5Lazy = new Lazy<MD5>(MD5.Create);
         /// <summary>
         /// 获取字符串的MD5
         /// </summary>
@@ -19,7 +19,7 @@ namespace Mecalf.Common.Utility
         public static string Md5(this string str)
         {
             var sourceBit = Encoding.UTF8.GetBytes(str);
-            var directBit = md5Lazy.Value.ComputeHash(sourceBit);
+            var directBit = _md5Lazy.Value.ComputeHash(sourceBit);
             var directStr = BitConverter.ToString(directBit).Replace("-", "");
             return directStr;
         }
@@ -31,7 +31,7 @@ namespace Mecalf.Common.Utility
         /// <returns></returns>
         public static string Md5(this byte[] bytes)
         {
-            var directBit = md5Lazy.Value.ComputeHash(bytes);
+            var directBit = _md5Lazy.Value.ComputeHash(bytes);
             var directStr = BitConverter.ToString(directBit).Replace("-", "");
             return directStr;
         }
@@ -43,7 +43,7 @@ namespace Mecalf.Common.Utility
         /// <returns></returns>
         public static string Md5(this Stream stream)
         {
-            var directBit = md5Lazy.Value.ComputeHash(stream);
+            var directBit = _md5Lazy.Value.ComputeHash(stream);
             var directStr = BitConverter.ToString(directBit).Replace("-", "");
             return directStr;
         }
@@ -55,7 +55,7 @@ namespace Mecalf.Common.Utility
         /// <returns></returns>
         public static string FileMd5(this string filePath)
         {
-            var directBit = md5Lazy.Value.ComputeHash(File.OpenRead(filePath));
+            var directBit = _md5Lazy.Value.ComputeHash(File.OpenRead(filePath));
             var directStr = BitConverter.ToString(directBit).Replace("-", "");
             return directStr;
         }

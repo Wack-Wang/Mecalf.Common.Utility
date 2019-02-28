@@ -13,8 +13,8 @@
 //    /// <typeparam name="TPrimaryKey">实体的主键</typeparam>
 //    /// <typeparam name="TCreateInput">创建实体时的输入 </typeparam>
 //    /// <typeparam name="TUpdateInput">更新实体时的输入 </typeparam>
-//    /// <typeparam name="TGetAllInput">获取所有实体时的输入</typeparam>
-//    public class CrudServicePageBuilder<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetAllInput> : ICrudAppService<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetAllInput>
+//    /// <typeparam name="TGetListInput">获取所有实体时的输入</typeparam>
+//    public class CrudServicePageBuilder<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetListInput> : ICrudAppService<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetListInput>
 //        where TEntityDto : IEntityDto<TPrimaryKey>
 //        where TCreateInput : IEntityDto<TPrimaryKey>
 //        where TUpdateInput : IEntityDto<TPrimaryKey>
@@ -60,15 +60,15 @@
 //        /// <summary>
 //        /// 批量获取实体的输入
 //        /// </summary>
-//        TGetAllInput GetAllInput { get; set; }
+//        TGetListInput GetListInput { get; set; }
 //        /// <summary>
 //        /// 批量获取实体的输出
 //        /// </summary>
-//        PagedApiResult<List<TEntityDto>> GetAllOutput { get; set; }
+//        PagedApiResult<List<TEntityDto>> GetListOutput { get; set; }
 
 //        private TemplateInterpreter interpreter;
 
-//        public CrudServicePageBuilder<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetAllInput>(ICrudAppService<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetAllInput> service)
+//        public CrudServicePageBuilder<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetListInput>(ICrudAppService<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetListInput> service)
 //        {
 
 //        }
@@ -111,7 +111,7 @@
 //        /// </summary>
 //        /// <param name="input"></param>
 //        /// <returns></returns>
-//        public PagedApiResult<List<TEntityDto>> GetAll(TGetAllInput input)
+//        public PagedApiResult<List<TEntityDto>> List(TGetListInput input)
 //        {
 //            throw new System.NotImplementedException();
 //        }

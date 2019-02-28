@@ -17,16 +17,16 @@ namespace Mecalf.Web.Framework.ClientBuilder
     /// </summary>
     public class TemplateInterpreter
     {
-        private byte[] tagBeginSign;
-        private byte[] tagEndSign;
-        private byte[] dtoSeeTemplateBeginSign;
-        private byte[] dtoSeeTemplateEndSign;
-        private BinaryReader templateReader;
-        private BinaryWriter templateWriter;
-        private string templatePath;
-        private string savePagePath;
-        private int lineNumber = 1;
-        private int columnNumber = 1;
+        private readonly byte[] _tagBeginSign;
+        private readonly byte[] _tagEndSign;
+        private readonly byte[] _dtoSeeTemplateBeginSign;
+        private readonly byte[] _dtoSeeTemplateEndSign;
+        private BinaryReader _templateReader;
+        private BinaryWriter _templateWriter;
+        private string _templatePath;
+        private string _savePagePath;
+        private int _lineNumber = 1;
+        private int _columnNumber = 1;
 
         /// <summary>
         /// 编码方案
@@ -44,10 +44,10 @@ namespace Mecalf.Web.Framework.ClientBuilder
 
         public TemplateInterpreter()
         {
-            tagBeginSign = new byte[] { (byte)'{', (byte)'@' };
-            tagEndSign = new byte[] { (byte)'@', (byte)'}' };
-            dtoSeeTemplateBeginSign = new byte[] { (byte)'{', (byte)'$' };
-            dtoSeeTemplateEndSign = new byte[] { (byte)'$', (byte)'}' };
+            _tagBeginSign = new byte[] { (byte)'{', (byte)'@' };
+            _tagEndSign = new byte[] { (byte)'@', (byte)'}' };
+            _dtoSeeTemplateBeginSign = new byte[] { (byte)'{', (byte)'$' };
+            _dtoSeeTemplateEndSign = new byte[] { (byte)'$', (byte)'}' };
             DtoTypes = new Dictionary<string, Type>();
             Values = new Dictionary<string, string>();
             //dtoTypes["CreateDto"] = typeof(PagedAndSortedSearchInput);
@@ -111,15 +111,15 @@ namespace Mecalf.Web.Framework.ClientBuilder
 
         private void WriteData(string data)
         {
-            templateWriter.Write(Encoding.GetBytes(data));
+            _templateWriter.Write(Encoding.GetBytes(data));
         }
         private void WriteData(byte data)
         {
-            templateWriter.Write(data);
+            _templateWriter.Write(data);
         }
         private void WriteData(byte[] data)
         {
-            templateWriter.Write(data);
+            _templateWriter.Write(data);
         }
         /// <summary>
         /// 变量读取,从环境中读取指定的属性
@@ -139,7 +139,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
             }
             catch (KeyNotFoundException e)
             {
-                throw new KeyNotFoundException($" 给定的Key为:{name}，在文件{templatePath},在第{lineNumber}行,第{columnNumber}列", e);
+                throw new KeyNotFoundException($" 给定的Key为:{name}，在文件{_templatePath},在第{_lineNumber}行,第{_columnNumber}列", e);
             }
         }
         /// <summary>
@@ -190,13 +190,14 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// <typeparam name="TPrimaryKey"></typeparam>
         /// <typeparam name="TCreateInput"></typeparam>
         /// <typeparam name="TUpdateInput"></typeparam>
-        /// <typeparam name="TGetAllInput"></typeparam>
+        /// <typeparam name="TGetListInput"></typeparam>
         /// <param name="service"></param>
-        public void SetCrudService<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetAllInput>(
-            ICrudAppService<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetAllInput> service)
+        public void SetCrudService<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetListInput, TListEntityDto>(
+            ICrudAppService<TEntityDto, TPrimaryKey, TCreateInput, TUpdateInput, TGetListInput, TListEntityDto> service)
             where TEntityDto : IEntityDto<TPrimaryKey>
             where TCreateInput : IEntityDto<TPrimaryKey>
             where TUpdateInput : IEntityDto<TPrimaryKey>
+            where TListEntityDto : IEntityDto<TPrimaryKey>
         {
             DtoTypes.Clear();
             DtoTypes["Entity"] = typeof(TEntityDto);
@@ -204,7 +205,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
             DtoTypes["CreateDto"] = typeof(TCreateInput);
             DtoTypes["UpdateDto"] = typeof(TUpdateInput);
             DtoTypes["PrimaryKey"] = typeof(TPrimaryKey);
-            DtoTypes["GetAllDto"] = typeof(TGetAllInput);
+            DtoTypes["GetListDto"] = typeof(TGetListInput);
 
             var entityName = typeof(TEntityDto).Name;
             if (entityName.EndsWith("Dto"))
@@ -233,7 +234,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
             {
                 getAllDtoName = getAllDtoName.Substring(0, getAllDtoName.Length - 3);
             }
-            ValueSet("GetAllDtoName", getAllDtoName);
+            ValueSet("GetListDtoName", getAllDtoName);
         }
 
         /// <summary>
@@ -241,15 +242,15 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// </summary>
         public void Build(string path, string savePath)
         {
-            templatePath = path;
-            savePagePath = savePath;
-            lineNumber = 1;
-            columnNumber = 1;
-            templateReader = new BinaryReader(new FileStream(path, FileMode.Open));
-            templateWriter = new BinaryWriter(new FileStream(savePath, FileMode.Create));
-            MainLoop(templateReader, templateWriter);
-            templateReader.Dispose();
-            templateWriter.Dispose();
+            _templatePath = path;
+            _savePagePath = savePath;
+            _lineNumber = 1;
+            _columnNumber = 1;
+            _templateReader = new BinaryReader(new FileStream(path, FileMode.Open));
+            _templateWriter = new BinaryWriter(new FileStream(savePath, FileMode.Create));
+            MainLoop(_templateReader, _templateWriter);
+            _templateReader.Dispose();
+            _templateWriter.Dispose();
         }
 
         /// <summary>
@@ -261,9 +262,9 @@ namespace Mecalf.Web.Framework.ClientBuilder
         {
             var entityName = CamelCase("EntityName") + "s";
             var saveFolder = Path.Combine(saveDir, entityName);
-            if (System.IO.Directory.Exists(saveFolder) == false)
+            if (Directory.Exists(saveFolder) == false)
             {
-                System.IO.Directory.CreateDirectory(saveFolder);
+                Directory.CreateDirectory(saveFolder);
             }
             BuildManyInternal(pathDir, saveFolder);
         }
@@ -273,9 +274,9 @@ namespace Mecalf.Web.Framework.ClientBuilder
         /// </summary>
         private void BuildManyInternal(string pathDir, string saveDir)
         {
-            if (System.IO.Directory.Exists(saveDir) == false)
+            if (Directory.Exists(saveDir) == false)
             {
-                System.IO.Directory.CreateDirectory(saveDir);
+                Directory.CreateDirectory(saveDir);
             }
 
             var dirs = Directory.GetDirectories(pathDir);
@@ -287,10 +288,10 @@ namespace Mecalf.Web.Framework.ClientBuilder
                 BuildManyInternal(dir, Path.Combine(saveDir, directory.Name));
             }
 
-            var files = System.IO.Directory.GetFiles(pathDir);
+            var files = Directory.GetFiles(pathDir);
             foreach (var path in files)
             {
-                var savePath = Path.Combine(saveDir, System.IO.Path.GetFileName(path));
+                var savePath = Path.Combine(saveDir, Path.GetFileName(path));
                 Build(path, savePath);
             }
         }
@@ -313,12 +314,12 @@ namespace Mecalf.Web.Framework.ClientBuilder
                 {
                     if (current == '\n')
                     {
-                        lineNumber++;
-                        columnNumber = 1;
+                        _lineNumber++;
+                        _columnNumber = 1;
                     }
                     else
                     {
-                        columnNumber++;
+                        _columnNumber++;
                     }
                 }
                 switch (status)
@@ -326,7 +327,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
                     case LoopStatus.文本读取:
                         {
                             //文本模式下,需要时刻判断是否有标签开始
-                            if (current == tagBeginSign[0])
+                            if (current == _tagBeginSign[0])
                             {
                                 status = LoopStatus.标签头判断;
                                 buffer.Clear();
@@ -342,11 +343,11 @@ namespace Mecalf.Web.Framework.ClientBuilder
                         {
                             //判断标签头状态,如果
 
-                            if (current == tagBeginSign[buffer.Count])
+                            if (current == _tagBeginSign[buffer.Count])
                             {
                                 buffer.Add(current);
                                 //如果缓存的信息已经和标签头完全匹配,则进入标签内容读取阶段
-                                if (tagBeginSign.Length == buffer.Count && tagBeginSign.Except(buffer).IsNullOrEmpty())
+                                if (_tagBeginSign.Length == buffer.Count && _tagBeginSign.Except(buffer).IsNullOrEmpty())
                                 {
                                     status = LoopStatus.标签内容读取;
                                 }
@@ -360,7 +361,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
                                 {
                                     WriteData(buffer[0]);
                                     buffer.RemoveAt(0);
-                                } while (StartWith(tagBeginSign, buffer) == false);
+                                } while (StartWith(_tagBeginSign, buffer) == false);
 
                                 if (buffer.Count == 0)
                                 {
@@ -375,7 +376,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
                     case LoopStatus.标签内容读取:
                         {
                             //标签模式下,判断是否是标签结束标记
-                            if (current == tagEndSign[0])
+                            if (current == _tagEndSign[0])
                             {
                                 status = LoopStatus.标签尾判断;
                                 buffer.Clear();
@@ -392,11 +393,11 @@ namespace Mecalf.Web.Framework.ClientBuilder
                             //判断是否满足标签结束要求,当完全匹配标签尾时,将状态跳转到文本模式,
 
 
-                            if (current == tagEndSign[buffer.Count])
+                            if (current == _tagEndSign[buffer.Count])
                             {
                                 buffer.Add(current);
                                 //如果缓存的信息已经和标签尾完全匹配,则进入标签内容处理阶段
-                                if (tagEndSign.Length == buffer.Count && tagEndSign.Except(buffer).IsNullOrEmpty())
+                                if (_tagEndSign.Length == buffer.Count && _tagEndSign.Except(buffer).IsNullOrEmpty())
                                 {
                                     HandleTag(Encoding.GetString(tagContent.ToArray()));
                                     tagContent.Clear();
@@ -443,24 +444,24 @@ namespace Mecalf.Web.Framework.ClientBuilder
             LoopStatus status = LoopStatus.文本读取;
             byte current = 0;
 
-            while (templateReader.BaseStream.Position < templateReader.BaseStream.Length)
+            while (_templateReader.BaseStream.Position < _templateReader.BaseStream.Length)
             {
-                current = templateReader.ReadByte();
+                current = _templateReader.ReadByte();
                 if (current == '\n')
                 {
-                    lineNumber++;
-                    columnNumber = 1;
+                    _lineNumber++;
+                    _columnNumber = 1;
                 }
                 else
                 {
-                    columnNumber++;
+                    _columnNumber++;
                 }
                 switch (status)
                 {
                     case LoopStatus.文本读取:
                         {
                             //文本模式下,需要时刻判断是否有标签开始
-                            if (current == dtoSeeTemplateBeginSign[0])
+                            if (current == _dtoSeeTemplateBeginSign[0])
                             {
                                 status = LoopStatus.标签头判断;
                                 buffer.Clear();
@@ -476,11 +477,11 @@ namespace Mecalf.Web.Framework.ClientBuilder
                         {
                             //判断标签头状态,如果
 
-                            if (current == dtoSeeTemplateBeginSign[buffer.Count])
+                            if (current == _dtoSeeTemplateBeginSign[buffer.Count])
                             {
                                 buffer.Add(current);
                                 //如果缓存的信息已经和标签头完全匹配,则进入模板内容读取阶段
-                                if (dtoSeeTemplateBeginSign.Length == buffer.Count && dtoSeeTemplateBeginSign.Except(buffer).IsNullOrEmpty())
+                                if (_dtoSeeTemplateBeginSign.Length == buffer.Count && _dtoSeeTemplateBeginSign.Except(buffer).IsNullOrEmpty())
                                 {
                                     status = LoopStatus.标签内容读取;
                                 }
@@ -497,7 +498,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
                     case LoopStatus.标签内容读取:
                         {
                             //标签模式下,判断是否是标签结束标记
-                            if (current == dtoSeeTemplateEndSign[0])
+                            if (current == _dtoSeeTemplateEndSign[0])
                             {
                                 status = LoopStatus.标签尾判断;
                                 buffer.Clear();
@@ -514,11 +515,11 @@ namespace Mecalf.Web.Framework.ClientBuilder
                             //判断是否满足标签结束要求,当完全匹配标签尾时,将状态跳转到文本模式,
 
 
-                            if (current == dtoSeeTemplateEndSign[buffer.Count])
+                            if (current == _dtoSeeTemplateEndSign[buffer.Count])
                             {
                                 buffer.Add(current);
                                 //如果缓存的信息已经和标签尾完全匹配,则进入标签内容处理阶段
-                                if (dtoSeeTemplateEndSign.Length == buffer.Count && dtoSeeTemplateEndSign.Except(buffer).IsNullOrEmpty())
+                                if (_dtoSeeTemplateEndSign.Length == buffer.Count && _dtoSeeTemplateEndSign.Except(buffer).IsNullOrEmpty())
                                 {
                                     return templateContent.ToArray();
                                 }
@@ -536,7 +537,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            throw new Exception($"模板内容有误!文件:{templatePath}");
+            throw new Exception($"模板内容有误!文件:{_templatePath}");
         }
 
 
@@ -568,7 +569,7 @@ namespace Mecalf.Web.Framework.ClientBuilder
             {
                 ValueSet("dto.prop", dtoProperty.Name);
                 ValueSet("dtoProp", dtoProperty.Name);
-                MainLoop(new BinaryReader(mStream), templateWriter, false);
+                MainLoop(new BinaryReader(mStream), _templateWriter, false);
                 mStream.Position = 0;
             }
 
